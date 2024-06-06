@@ -6,9 +6,9 @@ def sql_connect(nomeconn, tipo):
         conn = st.connection(nomeconn, type=tipo)
         conn.query('SELECT * FROM LINEE LIMIT 0;', ttl=0, show_spinner=False)
         st.sidebar.success("Connesso al DB")
+        return conn
     except:
         st.sidebar.error("Connessione al DB\nnon riuscita")
-    return conn
 
 def hex_to_rgb(h):
     h = h.lstrip("#")
