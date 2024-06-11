@@ -87,7 +87,7 @@ with tab1:
             with st.container(border=True):
                 st.subheader('Puntualità e numero di ritardi/soppressioni:')
                 col1, col2 = st.columns([4,1])
-                chart_percent, data_percent = grafico_percent(conn, intervallo_date)
+                chart_percent, data_percent = grafico_percent(conn, intervallo_date, scelta_linea_codice)
                 with col1:
                     st.altair_chart(chart_percent, theme='streamlit', use_container_width=True)
                 with col2:
