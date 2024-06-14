@@ -15,7 +15,7 @@ st.set_page_config(
 
 st.sidebar.title('TrainStats Piemonte')
 st.sidebar.header(':blue[Benvenuto!]')
-st.sidebar.markdown("In questo portale si possono trovare\nstatistiche e informazioni\nsulla circolazione dei treni\nin Piemonte, nello specifico\nper le linee non monitorate\ndall'Agenzia della Mobilità\n\nPer aiuto sull'utilizzo\ndel portale, visitare\nla pagina informazioni\n\n\nStato connessione DB:")
+st.sidebar.markdown("In questo portale si possono trovare\nstatistiche e informazioni\nsulla circolazione dei treni\nin Piemonte, per le linee\nnon monitorate\ndall'Agenzia della Mobilità\n\nPer aiuto sull'utilizzo\ndel portale, visitare\nla pagina informazioni\n\n\nStato connessione DB:")
 
 st.title("Homepage")
 st.subheader('Statistiche sulle linee ferroviarie piemontesi')
@@ -101,8 +101,11 @@ with tab1:
                 with col4:
                     col4.dataframe(data_media, height=400)
 
-
-
+            with st.container(border=True):
+                st.subheader('Numero di ritardi/soppressioni per treno:')
+                chart_rit_treno, data_rit_treno = grafico_per_num_treno(conn, intervallo_date, scelta_linea_codice)
+                st.altair_chart(chart_rit_treno, theme='streamlit', use_container_width=True)
+                
 
 with tab2:      # mappa
     df2 = conn.query('with TabRitStazioni AS (SELECT T.STAZARRIVO, AVG(C.RIT) AS MEDIARIT FROM CORSE AS C, TRENI AS T WHERE C.NumTreno = T.NumTreno GROUP BY T.STAZARRIVO) SELECT STAZARRIVO, NomeStazione, MEDIARIT, LAT, LON FROM TabRitStazioni AS TR, STAZIONI AS S WHERE TR.STAZARRIVO = S.CodStazione;', ttl=0)
