@@ -10,7 +10,12 @@ st.set_page_config(
     layout="wide"
 )
 
-conn = sql_connect('datitreni', 'sql')
-
 st.title("Informazioni sul sito")
-st.info("Webapp sviluppata in Python grazie a Streamlit.\n\nI dati su cui sono elaborate le statistiche sono provenienti dalle API di Viaggiatreno.\n\nPer contatti: info@ferroviebiellesi.it\n\n© Matteo Manfrin - 2024")
+
+st.subheader('Come usare il sito:')
+st.markdown("Nella homepage sono presenti due schede: **'Statistiche e grafici'** e **'Mappa'**:")
+st.markdown("Nella scheda **'Statistiche e grafici'**, selezionare una delle linee disponibili dal menù a tendina. Verranno visualizzate le statistiche generali relative all'ultima settimana e dei grafici per i quali è selezionabile l'intervallo di date attraverso l'apposito menù.")
+st.markdown("Nella scheda **'Mappa'** è presente una mappa con evidenziate le stazioni e le linee. È possibile selezionare se visualizzare i dati relativi alle linee oppure alle stazioni al passaggio del mouse, attraverso il selettore presente sopra alla cartina. La media dei ritardi, per quanto riguarda le stazioni, si riferisce ai ritardi dei treni in arrivo. Anche il ritardo medio di ogni linea è calcolato in base all'orario di arrivo a destinazione del treno.")
+
+st.subheader('Info:')
+st.info("Webapp sviluppata in Python grazie a Streamlit.\n\nI dati su cui sono elaborate le statistiche sono provenienti da Viaggiatreno.\n\nPer contatti: info@ferroviebiellesi.it\n\n© Matteo Manfrin - 2024")
