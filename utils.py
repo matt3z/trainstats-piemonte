@@ -43,3 +43,17 @@ def grafico_media(conn, intervallo_date, scelta_linea_codice):
     chart = alt.Chart(data).transform_fold(['MEDIA_RIT']).mark_line(interpolate="monotone").encode(alt.X("DATA:T", axis=alt.Axis(title=None)), alt.Y("MEDIA_RIT:Q", axis=alt.Axis(title=None)), color=alt.Color('key:N', scale=scale).title('Legenda'))
     
     return chart, data
+
+
+def grafico_per_num_treno(conn, intervallo_date, scelta_linea_codice):
+    data = conn.query(f"with TabTreni AS (SELECT C.NumTreno FROM CORSE AS C, TRENI AS T WHERE T.NumTreno=C.NumTreno AND T.LINEA={int(scelta_linea_codice)} AND C.Data>='{intervallo_date[0]}' AND C.Data<='{intervallo_date[1]}' GROUP BY NUMTRENO), TabRit5 AS (SELECT C.NumTreno, COUNT(*) AS RIT5 FROM CORSE AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={int(scelta_linea_codice)} AND RIT>=5 AND RIT<15 AND C.Data>='{intervallo_date[0]}' AND C.Data<='{intervallo_date[1]}' GROUP BY NumTreno), TabRit15 AS (SELECT C.NumTreno, COUNT(*) AS RIT15 FROM CORSE AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={int(scelta_linea_codice)} AND RIT>=15 AND C.Data>='{intervallo_date[0]}' AND C.Data<='{intervallo_date[1]}' GROUP BY NumTreno), TabSopp AS (SELECT C.NumTreno, COUNT(*) AS SOPP FROM CORSE AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={int(scelta_linea_codice)} AND Sopp=1 AND C.Data>='{intervallo_date[0]}' AND C.Data<='{intervallo_date[1]}' GROUP BY NumTreno), TabVar AS (SELECT C.NumTreno, COUNT(*) AS VAR FROM CORSE AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={int(scelta_linea_codice)} AND Var=1 AND C.Data>='{intervallo_date[0]}' AND C.Data<='{intervallo_date[1]}' GROUP BY NumTreno) SELECT TT.NumTreno AS NUMTRENO, IFNULL(RIT5,0) AS N_RIT5, IFNULL(RIT15,0) AS N_RIT15, IFNULL(SOPP,0) AS N_SOPP, IFNULL(VAR,0) AS N_VAR FROM TABTreni AS TT LEFT JOIN TABRIT5 AS TR5 ON TT.NumTreno=TR5.NumTreno LEFT JOIN TABRIT15 AS TR15 ON TT.NumTreno=TR15.NumTreno LEFT JOIN TABSOPP AS TS ON TT.NumTreno=TS.NumTreno LEFT JOIN TABVAR AS TV ON TT.NumTreno=TV.NumTreno;",
+                            ttl=0)
+
+    data['NUMTRENO'] = data.NUMTRENO.astype('str')
+
+    st.text(data.NUMTRENO)
+    
+    scale = alt.Scale(domain=['N_RIT5', 'N_RIT15', 'N_SOPP', 'N_VAR'], range=['yellow', 'orange', 'red', 'purple'])
+    chart = alt.Chart(data).transform_fold(['N_RIT5', 'N_RIT15', 'N_SOPP', 'N_VAR']).mark_bar(size=15).encode(alt.X("NUMTRENO", axis=alt.Axis(title=None)), alt.Y("value:Q", axis=alt.Axis(title=None)), color=alt.Color('key:N', scale=scale).title('Legenda'))
+   
+    return chart, data
