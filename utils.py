@@ -50,8 +50,6 @@ def grafico_per_num_treno(conn, intervallo_date, scelta_linea_codice):
                             ttl=0)
 
     data['NUMTRENO'] = data.NUMTRENO.astype('str')
-
-    st.text(data.NUMTRENO)
     
     scale = alt.Scale(domain=['N_RIT5', 'N_RIT15', 'N_SOPP', 'N_VAR'], range=['yellow', 'orange', 'red', 'purple'])
     chart = alt.Chart(data).transform_fold(['N_RIT5', 'N_RIT15', 'N_SOPP', 'N_VAR']).mark_bar(size=15).encode(alt.X("NUMTRENO", axis=alt.Axis(title=None)), alt.Y("value:Q", axis=alt.Axis(title=None)), color=alt.Color('key:N', scale=scale).title('Legenda'))
