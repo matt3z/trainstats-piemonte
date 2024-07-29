@@ -33,41 +33,33 @@ with tab1:
         if scelta_linea != None:
             df2 = conn.query(f"SELECT CodLinea FROM LINEE WHERE NomeLinea='{scelta_linea}';", ttl=0, show_spinner=False)
             scelta_linea_codice = df2['CodLinea'][0]        # query sql per dati sull'ultima settimana \/
-            puntualita = conn.query(f"WITH TabGroupDay AS (SELECT CORSE.Data as DATE, COUNT(*) AS NUMTOT FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} GROUP BY CORSE.Data), TabOr AS (SELECT CORSE.Data as DATE, COUNT(*) AS ORARIO FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} AND RIT IS NOT NULL AND RIT<5 GROUP BY CORSE.Data), TabR5 AS (SELECT CORSE.Data as DATE, COUNT(*) AS RIT5 FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} AND RIT IS NOT NULL AND RIT>=5 AND RIT<15 GROUP BY CORSE.Data), TabR15 AS (SELECT CORSE.Data as DATE, COUNT(*) AS RIT15 FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} AND RIT IS NOT NULL AND RIT>=15 GROUP BY CORSE.Data), TabSopp AS (SELECT CORSE.Data as DATE, COUNT(*) AS SOPP FROM CORSE, TRENI WHERE CORSE.NumTreno=TRENI.NumTreno AND TRENI.Linea={int(scelta_linea_codice)} AND CORSE.Sopp=1 GROUP BY CORSE.Data), TabVar AS (SELECT CORSE.Data as DATE, COUNT(*) AS VAR FROM CORSE, TRENI WHERE CORSE.NumTreno=TRENI.NumTreno AND TRENI.Linea={int(scelta_linea_codice)} AND CORSE.Var=1 GROUP BY CORSE.Data), TabMaxDate AS (SELECT MAX(DATA) AS DATAMASSIMA FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)}), TabDati1 AS (SELECT TGD.DATE AS DATE, NUMTOT, ORARIO, IFNULL(RIT5,0) AS RIT5, IFNULL(RIT15,0) AS RIT15, IFNULL(SOPP,0) AS SOPP, IFNULL(VAR,0) AS VAR FROM TabGroupDay AS TGD, TabOr AS TOR LEFT JOIN TabR5 AS TR5 ON TOR.DATE=TR5.DATE LEFT JOIN TabR15 AS TR15 ON TOR.DATE=TR15.DATE LEFT JOIN TabSopp as TSP ON TOR.DATE=TSP.DATE LEFT JOIN TabVar as TVR ON TOR.DATE=TVR.DATE, TabMaxDate WHERE TGD.DATE = TOR.DATE AND TGD.DATE >= DATE_SUB(DATAMASSIMA, INTERVAL 6 DAY) ORDER BY TGD.DATE DESC) SELECT MIN(DATE) AS DATA_DA, MAX(DATE) AS DATA_A, (SUM(ORARIO)/SUM(NUMTOT))*100 AS PUNTUALITA, SUM(RIT5) AS RIT5, SUM(RIT15) AS RIT15, SUM(SOPP) AS SOPP, SUM(VAR) AS VAR from TabDati1;", ttl=0)
+            puntualita, puntualita_scorsa_sett = calcola_df_puntualita_iniziali(conn, scelta_linea_codice)
             if puntualita['DATA_DA'][0] == None:
                 st.warning("Nessun dato trovato.",icon='⚠️')    # controllo sull'esistenza di dati per la linea selezionata
                 sys.exit()
             else:
-                data_da = puntualita['DATA_DA'][0]
-                data_a = puntualita['DATA_A'][0]
-                punt_val = puntualita['PUNTUALITA'][0]
-                r5_val = int(puntualita['RIT5'][0])
-                r15_val = int(puntualita['RIT15'][0])
-                sopp_val = int(puntualita['SOPP'][0])
-                var_val = int(puntualita['VAR'][0])             # query sql per dati settimana precedente \/
-                puntualita_scorsa_sett = conn.query(f"WITH TabGroupDay AS (SELECT CORSE.Data as DATE, COUNT(*) AS NUMTOT FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} GROUP BY CORSE.Data), TabOr AS (SELECT CORSE.Data as DATE, COUNT(*) AS ORARIO FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} AND RIT IS NOT NULL AND RIT<5 GROUP BY CORSE.Data), TabR5 AS (SELECT CORSE.Data as DATE, COUNT(*) AS RIT5 FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} AND RIT IS NOT NULL AND RIT>=5 AND RIT<15 GROUP BY CORSE.Data), TabR15 AS (SELECT CORSE.Data as DATE, COUNT(*) AS RIT15 FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)} AND RIT IS NOT NULL AND RIT>=15 GROUP BY CORSE.Data), TabSopp AS (SELECT CORSE.Data as DATE, COUNT(*) AS SOPP FROM CORSE, TRENI WHERE CORSE.NumTreno=TRENI.NumTreno AND TRENI.Linea={int(scelta_linea_codice)} AND CORSE.Sopp=1 GROUP BY CORSE.Data), TabVar AS (SELECT CORSE.Data as DATE, COUNT(*) AS VAR FROM CORSE, TRENI WHERE CORSE.NumTreno=TRENI.NumTreno AND TRENI.Linea={int(scelta_linea_codice)} AND CORSE.Var=1 GROUP BY CORSE.Data), TabMaxDate AS (SELECT MAX(DATA) AS DATAMASSIMA FROM CORSE, TRENI WHERE CORSE.NumTreno = TRENI.NumTreno AND TRENI.LINEA={int(scelta_linea_codice)}), TabDati1 AS (SELECT TGD.DATE AS DATE, NUMTOT, ORARIO, IFNULL(RIT5,0) AS RIT5, IFNULL(RIT15,0) AS RIT15, IFNULL(SOPP,0) AS SOPP, IFNULL(VAR,0) AS VAR FROM TabGroupDay AS TGD, TabOr AS TOR LEFT JOIN TabR5 AS TR5 ON TOR.DATE=TR5.DATE LEFT JOIN TabR15 AS TR15 ON TOR.DATE=TR15.DATE LEFT JOIN TabSopp as TSP ON TOR.DATE=TSP.DATE LEFT JOIN TabVar as TVR ON TOR.DATE=TVR.DATE, TabMaxDate WHERE TGD.DATE = TOR.DATE AND TGD.DATE >= DATE_SUB(DATAMASSIMA, INTERVAL 13 DAY) AND TGD.DATE<=DATE_SUB(DATAMASSIMA, INTERVAL 7 DAY) ORDER BY TGD.DATE DESC) SELECT MIN(DATE) AS DATA_DA, MAX(DATE) AS DATA_A, (SUM(ORARIO)/SUM(NUMTOT))*100 AS PUNTUALITA, SUM(RIT5) AS RIT5, SUM(RIT15) AS RIT15, SUM(SOPP) AS SOPP, SUM(VAR) AS VAR from TabDati1;", ttl=0)
+                data_da, data_a, punt_val, r5_val, r15_val, sopp_val, var_val, treni_tot_val = valori_puntualita_iniziali(puntualita)
                 if puntualita_scorsa_sett['DATA_DA'][0] == None:
-                    st.subheader(f'Riepilogo degli ultimi 7 giorni (dal {data_da} al {data_a}):')
+                    st.subheader(f"Riepilogo degli ultimi 7 giorni (dal {data_da} al {data_a}):")
                     colm1,colm2,colm3, colm4, colm5=st.columns(5)
                     colm1.metric(label="Puntualità", value=f'{round(punt_val,2)}%')
                     colm2.metric(label="n° Ritardi da 5 a 14 min", value=r5_val)
                     colm3.metric(label="n° Ritardi superiori a 15 min", value=r15_val)
                     colm4.metric(label="n° Treni soppressi", value=sopp_val)
                     colm5.metric(label="n° Treni variati", value=var_val)
+                    st.markdown(f"su **:blue-background[{treni_tot_val}]** treni totali")
                 else:
-                    delta_or_val = punt_val-puntualita_scorsa_sett['PUNTUALITA'][0]
-                    delta_r5_val = int(r5_val-puntualita_scorsa_sett['RIT5'][0])
-                    delta_r15_val = int(r15_val-puntualita_scorsa_sett['RIT15'][0])
-                    delta_sopp_val = int(sopp_val-puntualita_scorsa_sett['SOPP'][0])
-                    delta_var_val = int(var_val-puntualita_scorsa_sett['VAR'][0])
-                    st.subheader(f'Riepilogo degli ultimi 7 giorni (dal {data_da} al {data_a}):')
+                    delta_or_val, delta_r5_val, delta_r15_val, delta_sopp_val, delta_var_val = valori_delta_puntualita(puntualita_scorsa_sett, punt_val, r5_val, r15_val, sopp_val, var_val)
+                    st.subheader(f"Riepilogo degli ultimi 7 giorni (dal {data_da} al {data_a}):")
                     colm1,colm2,colm3, colm4, colm5=st.columns(5)
                     colm1.metric(label="Puntualità", value=f'{round(punt_val,2)}%', delta=f'{round(delta_or_val,2)}%')
                     colm2.metric(label="n° Ritardi da 5 a 14 min ", value=r5_val, delta=delta_r5_val, delta_color='inverse')
                     colm3.metric(label="n° Ritardi superiori a 15 min ", value=r15_val, delta=delta_r15_val, delta_color='inverse')
                     colm4.metric(label="n° Treni soppressi", value=sopp_val, delta=delta_sopp_val, delta_color='inverse')
                     colm5.metric(label="n° Treni variati", value=var_val, delta=delta_var_val, delta_color='inverse')
+                    st.markdown(f"su **:blue-background[{treni_tot_val}]** treni totali")
 
+    
     if scelta_linea != None:        # scelta date per visualizzazione grafici
         date=conn.query(f"SELECT MIN(DATA) AS DATAMIN, MAX(DATA) AS DATAMAX FROM CORSE, TRENI WHERE TRENI.NumTreno=CORSE.NumTreno AND LINEA={scelta_linea_codice};", ttl=0)
         data_min = date['DATAMIN'][0]
@@ -84,6 +76,17 @@ with tab1:
         if data_media.empty:
             st.warning("Nessun dato trovato.",icon='⚠️')
         else:
+            with st.container(border=True):     # statistiche relative a date - calcola puntualità tra date selezionate e visualizza metric
+                punt_int_val, r5_int_val, r15_int_val, sopp_int_val, var_int_val, treni_tot_int_val = metrics_intervallo(conn, intervallo_date, scelta_linea_codice)
+                st.subheader('Riepilogo relativo alle date selezionate:')
+                colm1,colm2,colm3, colm4, colm5 = st.columns(5)
+                colm1.metric(label="Puntualità", value=f'{round(punt_int_val,2)}%')
+                colm2.metric(label="n° Ritardi da 5 a 14 min", value=r5_int_val)
+                colm3.metric(label="n° Ritardi superiori a 15 min", value=r15_int_val)
+                colm4.metric(label="n° Treni soppressi", value=sopp_int_val)
+                colm5.metric(label="n° Treni variati", value=var_int_val)
+                st.markdown(f"su **:blue-background[{treni_tot_int_val}]** treni totali")
+
             with st.container(border=True):
                 st.subheader('Puntualità e numero di ritardi/soppressioni:')
                 col1, col2 = st.columns([4,1])
@@ -105,7 +108,12 @@ with tab1:
                 st.subheader('Numero di ritardi/soppressioni per treno:')
                 chart_rit_treno, data_rit_treno = grafico_per_num_treno(conn, intervallo_date, scelta_linea_codice)
                 st.altair_chart(chart_rit_treno, theme='streamlit', use_container_width=True)
-                
+
+            with st.container(border=True):
+                st.subheader('Media dei ritardi totali raggruppata per treno:')
+                chart_media_per_num_treno, data_media_per_num_treno = grafico_media_per_num_treno(conn, intervallo_date, scelta_linea_codice)
+                st.altair_chart(chart_media_per_num_treno, theme='streamlit', use_container_width=True)
+
 
 with tab2:      # mappa
     df2 = conn.query('with TabRitStazioni AS (SELECT T.STAZARRIVO, AVG(C.RIT) AS MEDIARIT FROM CORSE AS C, TRENI AS T WHERE C.NumTreno = T.NumTreno GROUP BY T.STAZARRIVO) SELECT STAZARRIVO, NomeStazione, MEDIARIT, LAT, LON FROM TabRitStazioni AS TR, STAZIONI AS S WHERE TR.STAZARRIVO = S.CodStazione;', ttl=0)
