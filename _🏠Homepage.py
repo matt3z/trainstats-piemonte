@@ -5,7 +5,6 @@ import datetime
 import pandas as pd
 import pydeck as pdk
 import numpy as np
-import sys
 
 st.set_page_config(
     page_title="Homepage",
@@ -36,7 +35,7 @@ with tab1:
             puntualita, puntualita_scorsa_sett = calcola_df_puntualita_iniziali(conn, scelta_linea_codice)
             if puntualita['DATA_DA'][0] == None:
                 st.warning("Nessun dato trovato.",icon='⚠️')    # controllo sull'esistenza di dati per la linea selezionata
-                sys.exit()
+                st.stop()
             else:
                 data_da, data_a, punt_val, r5_val, r15_val, sopp_val, var_val, treni_tot_val = valori_puntualita_iniziali(puntualita)
                 if puntualita_scorsa_sett['DATA_DA'][0] == None:
