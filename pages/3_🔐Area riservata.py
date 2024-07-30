@@ -66,21 +66,24 @@ if scelta_treno != None:        # scelta date per visualizzazione dataframe
         mask = (df['Data'] >= data_iniziale) & (df['Data'] <= data_finale)
         df = df.loc[mask]
         df['Data'] = df['Data'].dt.date
-        
-        df['Sopp'] = df['Sopp'].replace(1, "SI'").replace(0, "NO")
-        df['Var'] = df['Var'].replace(1, "SI'").replace(0, "NO")
 
-        colormap_original = plt.cm.get_cmap('RdYlGn')
-        reversed_map = colormap_original.reversed() 
-
-        def make_pretty(styler):
-            styler.background_gradient(axis=None, vmin=-6, vmax=14, cmap=reversed_map, subset="Rit")
-            styler.format(precision=0, thousands="", decimal=",")
-            styler.highlight_null(color='purple')
-            return styler
-
-        df = df.style.pipe(make_pretty)
-        st.dataframe(df, use_container_width=True)
+        if df.empty:
+            st.warning('Nessun dato trovato.', icon='⚠️')
+        else:
+            df['Sopp'] = df['Sopp'].replace(1, "SI'").replace(0, "NO")
+            df['Var'] = df['Var'].replace(1, "SI'").replace(0, "NO")
+    
+            colormap_original = plt.cm.get_cmap('RdYlGn')
+            reversed_map = colormap_original.reversed() 
+    
+            def make_pretty(styler):
+                styler.background_gradient(axis=None, vmin=-6, vmax=14, cmap=reversed_map, subset="Rit")
+                styler.format(precision=0, thousands="", decimal=",")
+                styler.highlight_null(color='purple')
+                return styler
+    
+            df = df.style.pipe(make_pretty)
+            st.dataframe(df, use_container_width=True)
 
 st.divider()
 st.title("Generatore query per inserimento guasti nel db")
