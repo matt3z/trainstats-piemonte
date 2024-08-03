@@ -60,7 +60,7 @@ with tab1:
 
     
     if scelta_linea != None:        # scelta date per visualizzazione grafici
-        date=conn.query(f"SELECT MIN(DATA) AS DATAMIN, MAX(DATA) AS DATAMAX FROM CORSE, TRENI WHERE TRENI.NumTreno=CORSE.NumTreno AND LINEA={scelta_linea_codice};", ttl=0)
+        date=conn.query(f"SELECT MIN(DATA) AS DATAMIN, MAX(DATA) AS DATAMAX FROM CORSE, TRENI WHERE TRENI.NumTreno=CORSE.NumTreno AND LINEA={scelta_linea_codice};", ttl=0, show_spinner="Caricamento...")
         data_min = date['DATAMIN'][0]
         data_max = date['DATAMAX'][0]
 
@@ -93,7 +93,7 @@ with tab1:
                 with col1:
                     st.altair_chart(chart_percent, theme='streamlit', use_container_width=True)
                 with col2:
-                    st.dataframe(data_percent, height=400)
+                    st.dataframe(data_percent, height=400, use_container_width=True, column_config={"PERC_ORARIO": st.column_config.NumberColumn(format="%.2f")})
             
             with st.container(border=True):
                 st.subheader('Media dei ritardi totali raggruppata per giorno:')
@@ -101,7 +101,7 @@ with tab1:
                 with col3:
                     st.altair_chart(chart_media, theme='streamlit', use_container_width=True)
                 with col4:
-                    col4.dataframe(data_media, height=400)
+                    col4.dataframe(data_media, height=400, use_container_width=True, column_config={"MEDIA_RIT": st.column_config.NumberColumn(format="%.2f")})
 
             with st.container(border=True):
                 st.subheader('Numero di ritardi/soppressioni per treno:')
