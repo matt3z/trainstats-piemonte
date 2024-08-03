@@ -115,8 +115,8 @@ with tab1:
 
 
 with tab2:      # mappa
-    df2 = conn.query('with TabRitStazioni AS (SELECT T.STAZARRIVO, AVG(C.RIT) AS MEDIARIT FROM CORSE AS C, TRENI AS T WHERE C.NumTreno = T.NumTreno GROUP BY T.STAZARRIVO) SELECT STAZARRIVO, NomeStazione, MEDIARIT, LAT, LON FROM TabRitStazioni AS TR, STAZIONI AS S WHERE TR.STAZARRIVO = S.CodStazione;', ttl=0)
-    df_l = conn.query('SELECT LINEE.NomeLinea AS name, AVG(RIT) AS MEDIARITLINEA FROM CORSE, TRENI, LINEE WHERE CORSE.NumTreno=TRENI.NumTreno AND TRENI.Linea=LINEE.CodLinea GROUP BY LINEE.NomeLinea;', ttl=0)
+    df2 = conn.query('with TabRitStazioni AS (SELECT T.STAZARRIVO, AVG(C.RIT) AS MEDIARIT FROM CORSE AS C, TRENI AS T WHERE C.NumTreno = T.NumTreno GROUP BY T.STAZARRIVO) SELECT STAZARRIVO, NomeStazione, MEDIARIT, LAT, LON FROM TabRitStazioni AS TR, STAZIONI AS S WHERE TR.STAZARRIVO = S.CodStazione;', ttl=0, show_spinner="Caricamento...")
+    df_l = conn.query('SELECT LINEE.NomeLinea AS name, AVG(RIT) AS MEDIARITLINEA FROM CORSE, TRENI, LINEE WHERE CORSE.NumTreno=TRENI.NumTreno AND TRENI.Linea=LINEE.CodLinea GROUP BY LINEE.NomeLinea;', ttl=0, show_spinner="Caricamento...")
     percorso = pd.read_json('linee.json')
     percorso["color"] = percorso["color"].apply(hex_to_rgb)
     percorso_def = pd.merge(df_l, percorso, on='name')
