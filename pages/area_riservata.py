@@ -7,8 +7,6 @@ import hmac
 import matplotlib.pyplot as plt
 
 st.set_page_config(
-    page_title="Area riservata",
-    page_icon="🔐",
     layout="wide"
 )
 
