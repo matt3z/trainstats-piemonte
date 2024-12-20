@@ -32,12 +32,6 @@ area_riservata = st.Page(
     icon="🔐"
 )
 
-otc_focus = st.Page(
-    page = "sections/otc_focus.py",
-    title = "SFM 4-6-7 Focus",
-    icon="🔐"
-)
-
 pg = st.navigation(
     {
         "Statistiche": [homepage, dashboard_sfm, guasti_disservizi],
