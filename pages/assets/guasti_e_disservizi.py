@@ -5,8 +5,6 @@ from utils import *
 import altair as alt
 
 st.set_page_config(
-    page_title="Guasti e disservizi",
-    page_icon="⛔",
     layout="wide"
 )
 
