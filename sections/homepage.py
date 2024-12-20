@@ -7,8 +7,6 @@ import pydeck as pdk
 import numpy as np
 
 st.set_page_config(
-    page_title="Homepage",
-    page_icon="🏠",
     layout="wide"
 )
 
@@ -16,12 +14,12 @@ st.sidebar.title('TrainStats Piemonte')
 st.sidebar.header(':blue[Benvenuto!]')
 st.sidebar.markdown("In questo portale si possono trovare\nstatistiche e informazioni\nsulla circolazione dei treni\nin Piemonte, per le linee\nnon monitorate\ndall'Agenzia della Mobilità\n\nPer aiuto sull'utilizzo\ndel portale, visitare\nla pagina informazioni\n\n\nStato connessione DB:")
 
+conn = sql_connect('datitreni', 'sql')
+
 st.title("Homepage")
 st.subheader('Statistiche sulle linee ferroviarie piemontesi')
 
 tab1, tab2 = st.tabs(['📈 Statistiche e grafici', '🗺️ Mappa delle stazioni'])
-
-conn = sql_connect('datitreni', 'sql')
 
 with tab1:
     df = conn.query('SELECT NOMELINEA FROM LINEE;', ttl=0, show_spinner=False)
@@ -116,38 +114,16 @@ with tab1:
 
 with tab2:      # mappa
     df2 = conn.query('with TabRitStazioni AS (SELECT T.STAZARRIVO, AVG(C.RIT) AS MEDIARIT FROM CORSE AS C, TRENI AS T WHERE C.NumTreno = T.NumTreno GROUP BY T.STAZARRIVO) SELECT STAZARRIVO, NomeStazione, MEDIARIT, LAT, LON FROM TabRitStazioni AS TR, STAZIONI AS S WHERE TR.STAZARRIVO = S.CodStazione;', ttl=0, show_spinner="Caricamento...")
-    df_l = conn.query('SELECT LINEE.NomeLinea AS name, AVG(RIT) AS MEDIARITLINEA FROM CORSE, TRENI, LINEE WHERE CORSE.NumTreno=TRENI.NumTreno AND TRENI.Linea=LINEE.CodLinea GROUP BY LINEE.NomeLinea;', ttl=0, show_spinner="Caricamento...")
-    percorso = pd.read_json('linee.json')
-    percorso["color"] = percorso["color"].apply(hex_to_rgb)
-    percorso_def = pd.merge(df_l, percorso, on='name')
-    # percorso_def
+    df2 = df2.round({'MEDIARIT':2})
     
     st.subheader('Mappa')
+    st.markdown("Nella mappa è visualizzabile il ritardo medio di termine corsa dei treni per ogni stazione capolinea:")
         
-    stations_tooltip = False
-    lines_tooltip = False
-    map_tooltip = ''
-    # scelta dei tooltip da visualizzare sulla mappa
-    tooltip_choice = st.radio(
-                    "Scegli cosa visualizzare sulla mappa al passaggio del mouse:",
-                    ["Scheda su stazioni", "Scheda su linee"],
-                    captions = ["Visualizza la media di ritardi all'arrivo per stazione", "Visualizza i dati di puntualità per linea"],
-                    horizontal=True)
-    
-    if tooltip_choice == "Scheda su stazioni":
-        stations_tooltip = True
-        lines_tooltip = False
-        map_tooltip = "Stazione di:\n{NomeStazione}\nMedia ritardi:\n{MEDIARIT} minuti"
-    if tooltip_choice == "Scheda su linee":
-        stations_tooltip = False
-        lines_tooltip = True
-        map_tooltip = "Linea:\n{name}\nMedia ritardi:\n{MEDIARITLINEA} minuti"
-
     # layer mappa
     layer = pdk.Layer(
         'ScatterplotLayer',
         data=df2,
-        pickable=stations_tooltip,
+        pickable=True,
         opacity=0.8,
         stroked=True,
         filled=True,
@@ -159,17 +135,7 @@ with tab2:      # mappa
         get_radius=300,
         get_fill_color=[255,140,0],
         get_line_color=[0,0,0],)
-
-    layer2 = pdk.Layer(
-    type="PathLayer",
-    data=percorso_def,
-    pickable=lines_tooltip,
-    get_color="color",
-    width_scale=20,
-    width_min_pixels=2,
-    get_path="path",
-    get_width=50,)
         
-    view_state = pdk.ViewState(latitude=45.37233, longitude=8.12934, zoom=8, pitch=50)
+    view_state = pdk.ViewState(latitude=45.37233, longitude=8.12934, zoom=7, bearing=0, pitch=0)
 
-    st.pydeck_chart(pdk.Deck(map_style=None, initial_view_state=view_state, layers=[layer, layer2], tooltip={"text": map_tooltip}))
+    st.pydeck_chart(pdk.Deck(initial_view_state=view_state, layers=[layer, tooltip={"text": "Stazione di:\n{NomeStazione}\nMedia ritardi:\n{MEDIARIT} minuti"}))
