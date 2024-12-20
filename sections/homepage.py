@@ -22,7 +22,7 @@ st.subheader('Statistiche sulle linee ferroviarie piemontesi')
 tab1, tab2 = st.tabs(['📈 Statistiche e grafici', '🗺️ Mappa delle stazioni'])
 
 with tab1:
-    df = conn.query('SELECT NOMELINEA FROM LINEE;', ttl=0, show_spinner=False)
+    df = conn.query('SELECT NOMELINEA FROM LINEE ORDER BY NOMELINEA;', ttl=0, show_spinner=False)
     linee_nome = df['NOMELINEA'].tolist()
 
     scelta_linea = st.selectbox("Seleziona la linea da visualizzare", linee_nome, index=None, placeholder='Scegli la linea...')
@@ -134,8 +134,8 @@ with tab2:      # mappa
         get_position='[LON, LAT]',
         get_radius=300,
         get_fill_color=[255,140,0],
-        get_line_color=[0,0,0],)
+        get_line_color=[0,0,0])
         
     view_state = pdk.ViewState(latitude=45.37233, longitude=8.12934, zoom=7, bearing=0, pitch=0)
 
-    st.pydeck_chart(pdk.Deck(initial_view_state=view_state, layers=[layer], tooltip={"text": "Stazione di:\n{NomeStazione}\nMedia ritardi:\n{MEDIARIT} minuti"}))
+    st.pydeck_chart(pdk.Deck(initial_view_state=view_state, layers=[layer], tooltip={"text": "Stazione di:\n{NomeStazione}\nMedia ritardi:\n{MEDIARIT} minuti"}), height=700)
