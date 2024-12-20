@@ -2,38 +2,38 @@ import streamlit as st
 from utils import *
 
 homepage = st.Page(
-    page = "pages/homepage.py",
+    page = "sections/homepage.py",
     title = "Homepage",
     icon="🏠",
     default=True
 )
 
 dashboard_sfm = st.Page(
-    page = "pages/dashboard_sfm.py",
+    page = "sections/dashboard_sfm.py",
     title = "Dashboard SFM",
     icon="🚉"
 )
 
 guasti_disservizi = st.Page(
-    page = "pages/guasti_e_disservizi.py",
+    page = "sections/guasti_e_disservizi.py",
     title = "Guasti e disservizi",
     icon="⛔"
 )
 
 informazioni = st.Page(
-    page = "pages/informazioni.py",
+    page = "sections/informazioni.py",
     title = "Informazioni",
     icon="📢"
 )
 
 area_riservata = st.Page(
-    page = "pages/area_riservata.py",
+    page = "sections/area_riservata.py",
     title = "Area riservata",
     icon="🔐"
 )
 
 otc_focus = st.Page(
-    page = "pages/otc_focus.py",
+    page = "sections/otc_focus.py",
     title = "SFM 4-6-7 Focus",
     icon="🔐"
 )
