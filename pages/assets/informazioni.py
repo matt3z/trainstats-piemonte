@@ -5,8 +5,6 @@ from utils import *
 import altair as alt
 
 st.set_page_config(
-    page_title="Informazioni",
-    page_icon="📢",
     layout="wide"
 )
 
@@ -21,4 +19,4 @@ st.subheader('Info:')
 st.info("Webapp sviluppata in Python grazie a Streamlit.\n\nI dati su cui sono elaborate le statistiche sono provenienti da Viaggiatreno.\n\nPer contatti: info@ferroviebiellesi.it\n\n© Matteo Manfrin - 2024")
 
 st.subheader('Changelog:')
-st.info("**30/07/2024 - Versione 1.1**\n\nAggiunta sezione guasti e disservizi, implementate statistiche sulla puntualità per il periodo di date selezionato, inserito nuovo grafico relativo alla media di ritardi per treno. Effettuati diversi miglioramenti al codice.\n\n**15/06/2024 - Versione 1.0**\n\nVersione iniziale del portale.")
+st.info("**20/12/2024 - Versione 1.2**\n\nAggiunta sezione Dashboard SFM, per un monitoraggio più semplice e immediato delle linee SFM. Aggiornato Streamlit alla versione 1.41, e implementato il nuovo sistema per la gestione delle app multipagina. Effettuati alcuni miglioramenti al codice.\n\n**30/07/2024 - Versione 1.1**\n\nAggiunta sezione guasti e disservizi, implementate statistiche sulla puntualità per il periodo di date selezionato, inserito nuovo grafico relativo alla media di ritardi per treno. Effettuati diversi miglioramenti al codice.\n\n**15/06/2024 - Versione 1.0**\n\nVersione iniziale del portale.")
