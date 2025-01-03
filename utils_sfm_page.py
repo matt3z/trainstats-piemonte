@@ -123,13 +123,13 @@ def metrics_sfm_tot_sett(conn):
 
 
 def sfm_grafico(conn):
-    df = conn.query("with TabTreni AS (SELECT CONCAT(YEAR(C.Data), '-', WEEK(C.Data,1)) AS SETT, T.Linea AS LINEA, COUNT(*) AS NUMTOT FROM CORSE AS C, TRENI AS T WHERE T.NumTreno=C.NumTreno AND Linea>900 AND C.Data>='2024-11-04' GROUP BY WEEK(C.Data,1), T.Linea), TabOrario AS (SELECT CONCAT(YEAR(C.Data), '-', WEEK(C.Data,1)) AS SETT, T.Linea AS LINEA, COUNT(*) AS ORARIO FROM CORSE AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND RIT IS NOT NULL AND RIT<5 AND Linea>900 AND C.Data>='2024-11-04' GROUP BY WEEK(C.Data,1), T.Linea) SELECT TT.SETT AS SETT, TT.LINEA AS LINEA, IFNULL((ORARIO/NUMTOT)*100,0) AS PERC_ORARIO FROM TabTreni AS TT LEFT JOIN TabOrario AS TOR ON TT.SETT=TOR.SETT AND TT.LINEA=TOR.LINEA;", ttl=0, show_spinner=False)
+    df = conn.query("with TabTreni AS (SELECT CONCAT(YEAR(C.Data), '-', WEEK(C.Data,1)) AS SETT, T.Linea AS LINEA, COUNT(*) AS NUMTOT FROM CORSE AS C, TRENI AS T WHERE T.NumTreno=C.NumTreno AND Linea>900 AND C.Data>='2024-11-04' GROUP BY WEEK(C.Data,1), T.Linea), TabOrario AS (SELECT CONCAT(YEAR(C.Data), '-', WEEK(C.Data,1)) AS SETT, T.Linea AS LINEA, COUNT(*) AS ORARIO FROM CORSE AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND RIT IS NOT NULL AND RIT<5 AND Linea>900 AND C.Data>='2024-11-04' GROUP BY WEEK(C.Data,1), T.Linea) SELECT TT.SETT AS SETT, TT.LINEA AS LINEA, IFNULL((ORARIO/NUMTOT)*100,0) AS PERC_ORARIO FROM TabTreni AS TT LEFT JOIN TabOrario AS TOR ON TT.SETT=TOR.SETT AND TT.LINEA=TOR.LINEA ORDER BY SETT;", ttl=0, show_spinner=False)
     linee={'901':'sfm1', '902':'sfm2', '903':'sfm3', '904':'sfm4', '906':'sfm6', '907':'sfm7', '913':'sfm3b', '999':'sfmA'}
 
     fig = px.line(df, x='SETT', y='PERC_ORARIO', color='LINEA', markers=True, line_shape='spline',
                   color_discrete_map={901:'#ef7f1a', 902:'#008dd2', 903:'#b0cb1f', 913:'#b0cb1f', 904:'#e31e24', 906:'#8b231d', 907:'#fecc00', 999:'#0c54a0'})
     fig.update_layout(margin=dict(t=25, b=0, l=0, r=0), height=400, xaxis_title="Settimana", yaxis_title="Puntualità")
-    fig.update_xaxes(showticklabels=True, showgrid=True)
+    fig.update_xaxes(type='category', showticklabels=True, showgrid=True)
     fig.update_yaxes(range=[0, 110])
     fig.for_each_trace(lambda t: t.update(name = linee[t.name],
                                       legendgroup = linee[t.name],
