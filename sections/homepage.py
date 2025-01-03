@@ -12,7 +12,7 @@ st.set_page_config(
 
 st.sidebar.title('TrainStats Piemonte')
 st.sidebar.header(':blue[Benvenuto!]')
-st.sidebar.markdown("In questo portale si possono trovare\nstatistiche e informazioni\nsulla circolazione dei treni\nin Piemonte, per le linee\nnon monitorate\ndall'Agenzia della Mobilità\n\nPer aiuto sull'utilizzo\ndel portale, visitare\nla pagina informazioni\n\n\nStato connessione DB:")
+st.sidebar.markdown("In questo portale si possono trovare\nstatistiche e informazioni\nsulla circolazione dei treni\nin Piemonte\n\nPer aiuto sull'utilizzo\ndel portale, visitare\nla pagina informazioni\n\n\nStato connessione DB:")
 
 conn = sql_connect('datitreni', 'sql')
 
