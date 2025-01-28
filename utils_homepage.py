@@ -4,6 +4,7 @@ import altair as alt
 import datetime
 import pandas as pd
 import pydeck as pdk
+import plotly.express as px
 import numpy as np
 import json
 
@@ -19,7 +20,7 @@ def ricerca_per_treno(conn):
         df2 = conn.query(f"SELECT CodLinea FROM LINEE WHERE NomeLinea='{scelta_linea}';", ttl=0, show_spinner=False)
         scelta_linea_codice = df2['CodLinea'][0]
 
-        elenco_num_treni = conn.query(f'SELECT DISTINCT C.NumTreno FROM C_PROVV AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={scelta_linea_codice} ORDER BY C.NumTreno')
+        elenco_num_treni = conn.query(f'SELECT DISTINCT C.NumTreno FROM C_PROVV AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={scelta_linea_codice} ORDER BY C.NumTreno', ttl=0, show_spinner=False)
         num_treni_lista = elenco_num_treni['NumTreno'].tolist()
         scelta_treno = st.selectbox("**Seleziona il numero del treno**", num_treni_lista, index=None, placeholder='Scegli il numero del treno...')
         
@@ -48,8 +49,8 @@ def ricerca_per_treno(conn):
 
                 with col2:
                     st.subheader("Statistiche")
-                    dati_part = conn.query(f"SELECT avg(ritPartenza) as MEDIA_RIT_PART FROM C_PROVV AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( ritPartenza SMALLINT(6) PATH '$.ritPartenza', tipoFermata VARCHAR(1) PATH '$.tipoFermata' ) ) AS tab_fermate WHERE C.NumTreno={scelta_treno} AND tipoFermata='P';", ttl=0, show_spinner=False)
-                    dati_arr = conn.query(f"SELECT AVG(Rit) AS MEDIA_RIT_ARR FROM C_PROVV WHERE NumTreno={scelta_treno}", ttl=0, show_spinner=False)
+                    dati_part = conn.query(f"SELECT avg(ritPartenza) as MEDIA_RIT_PART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( ritPartenza SMALLINT(6) PATH '$.ritPartenza', tipoFermata VARCHAR(1) PATH '$.tipoFermata' ) ) AS tab_fermate WHERE C.NumTreno={scelta_treno} AND tipoFermata='P';", ttl=0, show_spinner=False)
+                    dati_arr = conn.query(f"SELECT AVG(Rit) AS MEDIA_RIT_ARR FROM CORSE WHERE NumTreno={scelta_treno}", ttl=0, show_spinner=False)
                     rit_part = dati_part['MEDIA_RIT_PART'][0]
                     rit_arr = dati_arr['MEDIA_RIT_ARR'][0]
                     if rit_part != None:
@@ -63,7 +64,7 @@ def ricerca_per_treno(conn):
 
             # fine grafico e statistiche #
 
-            df = conn.query(f"SELECT * FROM C_PROVV WHERE NumTreno={scelta_treno};", ttl=0)
+            df = conn.query(f"SELECT * FROM CORSE WHERE NumTreno={scelta_treno} AND Data>='2025-01-29';", ttl=0, show_spinner=False)
 
             # per visualizzazione dataframe
             df['Sopp'] = df['Sopp'].replace(1, "SI'").replace(0, "NO")
