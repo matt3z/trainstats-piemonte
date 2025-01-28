@@ -19,7 +19,7 @@ conn = sql_connect('datitreni', 'sql')
 st.title("Homepage")
 st.subheader('Statistiche sulle linee ferroviarie piemontesi')
 
-tab1, tab2 = st.tabs(['📈 Statistiche e grafici', '🗺️ Mappa delle stazioni'])
+tab1, tab2, tab3 = st.tabs(['📈 Statistiche e grafici', '🚄 Ricerca per numero treno', '🗺️ Mappa delle stazioni'])
 
 with tab1:
     df = conn.query('SELECT NOMELINEA FROM LINEE ORDER BY NOMELINEA;', ttl=0, show_spinner=False)
@@ -112,30 +112,12 @@ with tab1:
                 st.altair_chart(chart_media_per_num_treno, theme='streamlit', use_container_width=True)
 
 
-with tab2:      # mappa
-    df2 = conn.query('with TabRitStazioni AS (SELECT T.STAZARRIVO, AVG(C.RIT) AS MEDIARIT FROM CORSE AS C, TRENI AS T WHERE C.NumTreno = T.NumTreno GROUP BY T.STAZARRIVO) SELECT STAZARRIVO, NomeStazione, MEDIARIT, LAT, LON FROM TabRitStazioni AS TR, STAZIONI AS S WHERE TR.STAZARRIVO = S.CodStazione;', ttl=0, show_spinner="Caricamento...")
-    df2 = df2.round({'MEDIARIT':2})
-    
+with tab2:
+    ricerca_per_treno(conn)
+
+
+with tab3:      # mappa
     st.subheader('Mappa')
     st.markdown("Nella mappa è visualizzabile il ritardo medio di termine corsa dei treni per ogni stazione capolinea:")
-        
-    # layer mappa
-    layer = pdk.Layer(
-        'ScatterplotLayer',
-        data=df2,
-        pickable=True,
-        opacity=0.8,
-        stroked=True,
-        filled=True,
-        radius_scale=6,
-        radius_min_pixels=1,
-        radius_max_pixels=100,
-        line_width_min_pixels=1,
-        get_position='[LON, LAT]',
-        get_radius=300,
-        get_fill_color=[255,140,0],
-        get_line_color=[0,0,0])
-        
-    view_state = pdk.ViewState(latitude=45.37233, longitude=8.12934, zoom=7, bearing=0, pitch=0)
-
-    st.pydeck_chart(pdk.Deck(initial_view_state=view_state, layers=[layer], tooltip={"text": "Stazione di:\n{NomeStazione}\nMedia ritardi:\n{MEDIARIT} minuti"}), height=700)
+    visualizza_mappa_stazioni(conn)
+    
