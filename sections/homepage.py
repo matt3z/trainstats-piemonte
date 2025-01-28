@@ -1,5 +1,6 @@
 import streamlit as st
 from utils import *
+from utils_homepage import *
 import altair as alt
 import datetime
 import pandas as pd
