@@ -1,5 +1,6 @@
 import streamlit as st
 import altair as alt
+from datetime import datetime as dt
 
 def sql_connect(nomeconn, tipo):
     try:
@@ -102,3 +103,9 @@ def valori_delta_puntualita(puntualita_scorsa_sett, punt_val, r5_val, r15_val, s
     delta_sopp_val = int(sopp_val-puntualita_scorsa_sett['SOPP'][0])
     delta_var_val = int(var_val-puntualita_scorsa_sett['VAR'][0])
     return delta_or_val, delta_r5_val, delta_r15_val, delta_sopp_val, delta_var_val
+
+
+def converti_data_ora(timestamp):
+    timestamp = timestamp/1000
+    dt_object = dt.fromtimestamp(timestamp)
+    return dt_object
