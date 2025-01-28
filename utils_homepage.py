@@ -64,7 +64,7 @@ def ricerca_per_treno(conn):
 
             # fine grafico e statistiche #
 
-            df = conn.query(f"SELECT * FROM CORSE WHERE NumTreno={scelta_treno} AND Data>='2025-01-29';", ttl=0, show_spinner=False)
+            df = conn.query(f"SELECT * FROM CORSE WHERE NumTreno={scelta_treno} AND Data>='2025-01-28';", ttl=0, show_spinner=False)
 
             # per visualizzazione dataframe
             df['Sopp'] = df['Sopp'].replace(1, "SI'").replace(0, "NO")
