@@ -83,10 +83,10 @@ def ricerca_per_treno(conn):
 
                     json_fermate = pd.json_normalize(json_fermate)
 
-                    json_fermate['partenzaTeorica'] = pd.to_datetime(json_fermate['partenzaTeorica'], unit='ms').dt.strftime('%H:%M:%S')
-                    json_fermate['partenzaReale'] = pd.to_datetime(json_fermate['partenzaReale'], unit='ms').dt.strftime('%H:%M:%S')
-                    json_fermate['arrivoTeorico'] = pd.to_datetime(json_fermate['arrivoTeorico'], unit='ms').dt.strftime('%H:%M:%S')
-                    json_fermate['arrivoReale'] = pd.to_datetime(json_fermate['arrivoReale'], unit='ms').dt.strftime('%H:%M:%S')
+                    json_fermate['partenzaTeorica'] = pd.to_datetime(json_fermate['partenzaTeorica'], unit='ms', utc=True).dt.tz_convert(tz='Europe/Brussels').dt.strftime('%H:%M:%S')
+                    json_fermate['partenzaReale'] = pd.to_datetime(json_fermate['partenzaReale'], unit='ms', utc=True).dt.tz_convert(tz='Europe/Brussels').dt.strftime('%H:%M:%S')
+                    json_fermate['arrivoTeorico'] = pd.to_datetime(json_fermate['arrivoTeorico'], unit='ms', utc=True).dt.tz_convert(tz='Europe/Brussels').dt.strftime('%H:%M:%S')
+                    json_fermate['arrivoReale'] = pd.to_datetime(json_fermate['arrivoReale'], unit='ms', utc=True).dt.tz_convert(tz='Europe/Brussels').dt.strftime('%H:%M:%S')
 
                     json_fermate = json_fermate.iloc[:, [0, 8, 9, 10, 2, 3, 4, 5]]
 
