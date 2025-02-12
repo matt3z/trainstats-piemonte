@@ -62,7 +62,28 @@ def ricerca_per_treno(conn):
                     else:
                         st.metric(label="Ritardo medio all'arrivo", value=f'{rit_arr} minuti')
 
-            # fine grafico e statistiche #
+                # PIE DI PAGINA BLOCCO CON GRAFICO E MEDIA RITARDI #
+                date = conn.query(f"SELECT MIN(DATA) AS DATAMINIMA, MAX(DATA) AS DATAMASSIMA, COUNT(*) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno}", ttl=0, show_spinner=False)
+                giorno_min = date['DATAMINIMA'][0]
+                giorno_max = date['DATAMASSIMA'][0]
+                num_corse = date['NUMTOT'][0]
+                date_rit_arrivo = conn.query(f"SELECT MIN(DATA) AS DATAMINIMA, MAX(DATA) AS DATAMASSIMA, COUNT(*) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL", ttl=0, show_spinner=False)
+                giorno_min_2 = date_rit_arrivo['DATAMINIMA'][0]
+
+                col3, col4 = st.columns(2)
+
+                with col3:
+                    st.markdown(f"su **:blue-background[{num_corse}]** corse totali -  dal **{giorno_min}** al **{giorno_max}**")
+                with col4:
+                    st.markdown(f"*Il ritardo medio alla partenza è calcolato a partire dal **{giorno_min_2}**")
+
+                # FINE PIE DI PAGINA BLOCCO CON GRAFICO E MEDIA RITARDI #
+            
+            # BLOCCO STATISTICHE PER STAZIONE
+            with st.expander(f"**Statistiche per stazione - treno {scelta_treno}**", icon="🚉"):
+                    statistiche_per_stazione(conn, scelta_treno)
+
+            # fine grafici e statistiche #
 
             df = conn.query(f"SELECT * FROM CORSE WHERE NumTreno={scelta_treno} AND Data>='2025-01-28';", ttl=0, show_spinner=False)
 
@@ -111,13 +132,93 @@ def ricerca_per_treno(conn):
                     st.info("Non sono presenti dati relativi allo smart caring")
 
             else:
-                st.info("Seleziona un treno dalla tabella per visualizzare i dati sul percorso", icon="ℹ")
+                st.info("Seleziona un treno dalla tabella per visualizzare i dati sul percorso, clicclando sul margine sinistro della riga", icon="ℹ")
 
 
+# funzione per blocco statistiche aggiuntive per stazione #
+def statistiche_per_stazione(conn, scelta_treno):
 
+    stazioni = conn.query(f"SELECT tab_fermate.nomeFermata FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE C.Data=(SELECT MAX(Data) FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL) AND C.NumTreno={scelta_treno};", ttl=0, show_spinner=False)
+    stazioni_lista = stazioni['nomeFermata'].tolist()
+    scelta_stazione = st.selectbox("**Seleziona una stazione**", stazioni_lista, index=None, placeholder='Scegli una stazione...')
 
+    date = conn.query(f"SELECT MIN(Data) AS DATAMIN, MAX(Data) AS DATAMAX FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL", ttl=0, show_spinner=False)
+    data_min = date['DATAMIN'][0]
+    data_max = date['DATAMAX'][0]
+    intervallo_date = st.date_input("**Scegli l'intervallo di date per le statistiche**",value=(data_min, data_max),min_value=data_min,max_value=data_max)
+                
+    if len(intervallo_date) != 1:
+                
+        giorno_1 = intervallo_date[0]
+        giorno_2 = intervallo_date[1]
 
+                    
+        if scelta_stazione != None:
+            
+            dati_box_plot = conn.query(f"SELECT C.Data, tab_fermate.nomeFermata, ritArrivo, ritPartenza FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno};", ttl=0)
 
+            if dati_box_plot['ritArrivo'].isnull().all():
+                scelta_arr_part = st.radio("**Scegli se visualizzare il ritardo di arrivo o di partenza**", options=['Arrivo', 'Partenza'], index=1, disabled=True, horizontal=True)
+            elif dati_box_plot['ritPartenza'].isnull().all():
+                scelta_arr_part = st.radio("**Scegli se visualizzare il ritardo di arrivo o di partenza**", options=['Arrivo', 'Partenza'], index=0, disabled=True, horizontal=True)
+            else:
+                scelta_arr_part = st.radio("**Scegli se visualizzare il ritardo di arrivo o di partenza**", options=['Arrivo', 'Partenza'], disabled=False, horizontal=True)
+                    
+            if scelta_arr_part == 'Arrivo':
+                tipo_rit = 'ritArrivo'
+            elif scelta_arr_part == 'Partenza':
+                tipo_rit = 'ritPartenza'
+                    
+        col1, col2, col3 = st.columns([1.5, 1.3, 1.2])
+    
+        with col1:
+            if scelta_stazione != None:
+
+                st.markdown("**Grafico:**")
+
+                config = {'displayModeBar': False}
+                fig_box = px.box(dati_box_plot, y=tipo_rit, points='all')
+                fig_box.update_traces(quartilemethod="linear", boxmean=True)
+                # fig_box.update_layout(yaxis_tickformat="d")
+                fig_box.update_layout(margin=dict(t=0, b=0, l=0, r=0), height=400, xaxis_title=f"{scelta_treno}", yaxis_visible=True, xaxis_fixedrange=True, yaxis_fixedrange=True, xaxis_showgrid=False)
+
+                st.plotly_chart(fig_box, theme="streamlit", config=config)
+
+        with col2:
+            if scelta_stazione != None:
+
+                punt_df = conn.query(f"with TabTotArrivo AS (SELECT count(ritArrivo) AS TOTARR FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno}), TabTotPartenza AS (SELECT count(ritPartenza) AS TOTPART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno}), TabPuntArrivo AS (SELECT count(ritArrivo) AS ORARIOARR FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno} AND ritArrivo<5), TabPuntPartenza AS (SELECT count(ritPartenza) AS ORARIOPART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno} AND ritPartenza<5) SELECT IFNULL((ORARIOARR/TOTARR)*100,0) AS PUNTARRIVO, IFNULL((ORARIOPART/TOTPART)*100,0) AS PUNTPARTENZA FROM TabTotArrivo, TabTotPartenza, TabPuntArrivo, TabPuntPartenza;", ttl=0, show_spinner=False)
+                if scelta_arr_part == 'Arrivo':
+                    punt = punt_df['PUNTARRIVO'][0]
+                elif scelta_arr_part == 'Partenza':
+                    punt = punt_df['PUNTPARTENZA'][0]
+                avg = dati_box_plot[tipo_rit].mean()
+                std = dati_box_plot[tipo_rit].std()
+                med = dati_box_plot[tipo_rit].median()
+                q1 = dati_box_plot[tipo_rit].quantile(q=0.25, interpolation='hazen') 
+                q3 = dati_box_plot[tipo_rit].quantile(q=0.75, interpolation='hazen')
+
+                st.markdown("**Statistiche aggiuntive:**")
+
+                col4, col5 = st.columns(2)
+                col4.metric("Puntualità su treni effettuati", f"{round(punt,2)}%")
+                col5.metric("Media", f"{round(avg,1)} min")
+                            
+                col6, col7 = st.columns(2)
+                col6.metric("Mediana", f"{med} min")
+                col7.metric("Deviazione Standard", f"{round(std,1)} min")
+                            
+                col8, col9 = st.columns(2)
+                col8.metric("1° quartile", f"{q1} min")
+                col9.metric("3° quartile", f"{q3} min")
+
+        with col3:
+            if scelta_stazione != None:
+                st.markdown("**Dettaglio per singoli giorni:**")
+                st.dataframe(dati_box_plot, column_config={"nomeFermata": None}, height=400)
+
+            else:
+                st.info("Seleziona un intervallo di date per visualizzare le statistiche", icon="ℹ")
 
 
 
