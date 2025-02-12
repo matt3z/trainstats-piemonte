@@ -169,7 +169,7 @@ def statistiche_per_stazione(conn, scelta_treno):
             elif scelta_arr_part == 'Partenza':
                 tipo_rit = 'ritPartenza'
                     
-        col1, col2, col3 = st.columns([1.5, 1.3, 1.2])
+        col1, col2, col3 = st.columns(3, gap="medium")
     
         with col1:
             if scelta_stazione != None:
@@ -215,10 +215,10 @@ def statistiche_per_stazione(conn, scelta_treno):
         with col3:
             if scelta_stazione != None:
                 st.markdown("**Dettaglio per singoli giorni:**")
-                st.dataframe(dati_box_plot, column_config={"nomeFermata": None}, height=400)
+                st.dataframe(dati_box_plot, column_config={"nomeFermata": None}, height=400, use_container_width=True)
 
-            else:
-                st.info("Seleziona un intervallo di date per visualizzare le statistiche", icon="ℹ")
+    else:
+        st.info("Seleziona un intervallo di date per visualizzare le statistiche", icon="ℹ")
 
 
 
