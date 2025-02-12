@@ -132,7 +132,7 @@ def ricerca_per_treno(conn):
                     st.info("Non sono presenti dati relativi allo smart caring")
 
             else:
-                st.info("Seleziona un treno dalla tabella per visualizzare i dati sul percorso, clicclando sul margine sinistro della riga", icon="ℹ")
+                st.info("Seleziona un treno dalla tabella per visualizzare i dati sul percorso, cliccando sul margine sinistro della riga", icon="ℹ")
 
 
 # funzione per blocco statistiche aggiuntive per stazione #
