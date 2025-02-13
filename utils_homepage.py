@@ -12,7 +12,7 @@ import json
 # TAB 2 - RICERCA PER NUMERO TRENO #
 
 def ricerca_per_treno(conn):
-    df = conn.query('SELECT NOMELINEA, CodLinea FROM LINEE ORDER BY NOMELINEA;', ttl=0, show_spinner=False)
+    df = conn.query('SELECT NOMELINEA, CodLinea FROM LINEE ORDER BY NOMELINEA;', show_spinner="Caricamento...")
     linee_nome = df['NOMELINEA'].tolist()
     scelta_linea = st.selectbox("**Seleziona la linea da cui scegliere il treno**", linee_nome, index=None, placeholder='Scegli la linea...')
 
@@ -20,7 +20,7 @@ def ricerca_per_treno(conn):
         df2 = conn.query(f"SELECT CodLinea FROM LINEE WHERE NomeLinea='{scelta_linea}';", ttl=0, show_spinner=False)
         scelta_linea_codice = df2['CodLinea'][0]
 
-        elenco_num_treni = conn.query(f'SELECT DISTINCT C.NumTreno FROM C_PROVV AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={scelta_linea_codice} ORDER BY C.NumTreno', ttl=0, show_spinner=False)
+        elenco_num_treni = conn.query(f'SELECT DISTINCT C.NumTreno FROM C_PROVV AS C, TRENI AS T WHERE C.NumTreno=T.NumTreno AND T.Linea={scelta_linea_codice} ORDER BY C.NumTreno', show_spinner="Caricamento...")
         num_treni_lista = elenco_num_treni['NumTreno'].tolist()
         scelta_treno = st.selectbox("**Seleziona il numero del treno**", num_treni_lista, index=None, placeholder='Scegli il numero del treno...')
         
@@ -33,7 +33,7 @@ def ricerca_per_treno(conn):
                 with col1:
                     st.subheader(f"Puntualità del treno {scelta_treno}")
 
-                    dati_grafico = conn.query(f"with TabTot AS (SELECT COUNT(NumTreno) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno}), TabOrario AS (SELECT COUNT(Rit) AS ORARIO FROM CORSE WHERE NumTreno={scelta_treno} AND RIT IS NOT NULL AND RIT<5), TabR5 AS (SELECT COUNT(Rit) AS RIT5 FROM CORSE WHERE NumTreno={scelta_treno} AND RIT IS NOT NULL AND RIT>=5 AND RIT<=14), TabR15 AS (SELECT COUNT(Rit) AS RIT15 FROM CORSE WHERE NumTreno={scelta_treno} AND RIT IS NOT NULL AND RIT>=15), TabSopp AS (SELECT COUNT(Sopp) AS SOPP FROM CORSE WHERE NumTreno={scelta_treno} AND Sopp=1), TabVar AS (SELECT COUNT(Var) AS VAR FROM CORSE WHERE NumTreno={scelta_treno} AND Var=1) SELECT IFNULL((ORARIO/NUMTOT)*100,0) AS PUNT, IFNULL((RIT5/NUMTOT)*100,0) AS RIT5, IFNULL((RIT15/NUMTOT)*100,0) AS RIT15, IFNULL((SOPP/NUMTOT)*100,0) AS SOPP, IFNULL((VAR/NUMTOT)*100,0) AS VAR FROM TabTot AS TT, TabOrario AS TOR, TabR5 AS TR5, TabR15 AS TR15, TabSopp AS TS, TabVar AS TV;", ttl=0, show_spinner=False)
+                    dati_grafico = conn.query(f"with TabTot AS (SELECT COUNT(NumTreno) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno}), TabOrario AS (SELECT COUNT(Rit) AS ORARIO FROM CORSE WHERE NumTreno={scelta_treno} AND RIT IS NOT NULL AND RIT<5), TabR5 AS (SELECT COUNT(Rit) AS RIT5 FROM CORSE WHERE NumTreno={scelta_treno} AND RIT IS NOT NULL AND RIT>=5 AND RIT<=14), TabR15 AS (SELECT COUNT(Rit) AS RIT15 FROM CORSE WHERE NumTreno={scelta_treno} AND RIT IS NOT NULL AND RIT>=15), TabSopp AS (SELECT COUNT(Sopp) AS SOPP FROM CORSE WHERE NumTreno={scelta_treno} AND Sopp=1), TabVar AS (SELECT COUNT(Var) AS VAR FROM CORSE WHERE NumTreno={scelta_treno} AND Var=1) SELECT IFNULL((ORARIO/NUMTOT)*100,0) AS PUNT, IFNULL((RIT5/NUMTOT)*100,0) AS RIT5, IFNULL((RIT15/NUMTOT)*100,0) AS RIT15, IFNULL((SOPP/NUMTOT)*100,0) AS SOPP, IFNULL((VAR/NUMTOT)*100,0) AS VAR FROM TabTot AS TT, TabOrario AS TOR, TabR5 AS TR5, TabR15 AS TR15, TabSopp AS TS, TabVar AS TV;", ttl=300, show_spinner="Caricamento...")
 
                     dati_grafico = dati_grafico.reset_index()
                     dati_grafico = pd.melt(dati_grafico, value_vars=['PUNT', 'RIT5', 'RIT15', 'SOPP', 'VAR'], var_name='LEGENDA', value_name='VALORE')
@@ -49,8 +49,8 @@ def ricerca_per_treno(conn):
 
                 with col2:
                     st.subheader("Statistiche")
-                    dati_part = conn.query(f"SELECT avg(ritPartenza) as MEDIA_RIT_PART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( ritPartenza SMALLINT(6) PATH '$.ritPartenza', tipoFermata VARCHAR(1) PATH '$.tipoFermata' ) ) AS tab_fermate WHERE C.NumTreno={scelta_treno} AND tipoFermata='P';", ttl=0, show_spinner=False)
-                    dati_arr = conn.query(f"SELECT AVG(Rit) AS MEDIA_RIT_ARR FROM CORSE WHERE NumTreno={scelta_treno}", ttl=0, show_spinner=False)
+                    dati_part = conn.query(f"SELECT avg(ritPartenza) as MEDIA_RIT_PART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( ritPartenza SMALLINT(6) PATH '$.ritPartenza', tipoFermata VARCHAR(1) PATH '$.tipoFermata' ) ) AS tab_fermate WHERE C.NumTreno={scelta_treno} AND tipoFermata='P';", ttl=300, show_spinner="Caricamento...")
+                    dati_arr = conn.query(f"SELECT AVG(Rit) AS MEDIA_RIT_ARR FROM CORSE WHERE NumTreno={scelta_treno}", ttl=300, show_spinner="Caricamento...")
                     rit_part = dati_part['MEDIA_RIT_PART'][0]
                     rit_arr = dati_arr['MEDIA_RIT_ARR'][0]
                     if rit_part != None:
@@ -63,11 +63,11 @@ def ricerca_per_treno(conn):
                         st.metric(label="Ritardo medio all'arrivo", value=f'{rit_arr} minuti')
 
                 # PIE DI PAGINA BLOCCO CON GRAFICO E MEDIA RITARDI #
-                date = conn.query(f"SELECT MIN(DATA) AS DATAMINIMA, MAX(DATA) AS DATAMASSIMA, COUNT(*) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno}", ttl=0, show_spinner=False)
+                date = conn.query(f"SELECT MIN(DATA) AS DATAMINIMA, MAX(DATA) AS DATAMASSIMA, COUNT(*) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno}", ttl=300, show_spinner="Caricamento...")
                 giorno_min = date['DATAMINIMA'][0]
                 giorno_max = date['DATAMASSIMA'][0]
                 num_corse = date['NUMTOT'][0]
-                date_rit_arrivo = conn.query(f"SELECT MIN(DATA) AS DATAMINIMA, MAX(DATA) AS DATAMASSIMA, COUNT(*) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL", ttl=0, show_spinner=False)
+                date_rit_arrivo = conn.query(f"SELECT MIN(DATA) AS DATAMINIMA, MAX(DATA) AS DATAMASSIMA, COUNT(*) AS NUMTOT FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL", ttl=300, show_spinner="Caricamento...")
                 giorno_min_2 = date_rit_arrivo['DATAMINIMA'][0]
 
                 col3, col4 = st.columns(2)
@@ -85,7 +85,7 @@ def ricerca_per_treno(conn):
 
             # fine grafici e statistiche #
 
-            df = conn.query(f"SELECT * FROM CORSE WHERE NumTreno={scelta_treno} AND Data>='2025-01-28';", ttl=0, show_spinner=False)
+            df = conn.query(f"SELECT * FROM CORSE WHERE NumTreno={scelta_treno} AND Data>='2025-01-28';", ttl=300, show_spinner="Caricamento...")
 
             # per visualizzazione dataframe
             df['Sopp'] = df['Sopp'].replace(1, "SI'").replace(0, "NO")
@@ -138,11 +138,11 @@ def ricerca_per_treno(conn):
 # funzione per blocco statistiche aggiuntive per stazione #
 def statistiche_per_stazione(conn, scelta_treno):
 
-    stazioni = conn.query(f"SELECT tab_fermate.nomeFermata FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE C.Data=(SELECT MAX(Data) FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL) AND C.NumTreno={scelta_treno};", ttl=0, show_spinner=False)
+    stazioni = conn.query(f"SELECT tab_fermate.nomeFermata FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE C.Data=(SELECT MAX(Data) FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL) AND C.NumTreno={scelta_treno};", ttl=300, show_spinner="Caricamento...")
     stazioni_lista = stazioni['nomeFermata'].tolist()
     scelta_stazione = st.selectbox("**Seleziona una stazione**", stazioni_lista, index=None, placeholder='Scegli una stazione...')
 
-    date = conn.query(f"SELECT MIN(Data) AS DATAMIN, MAX(Data) AS DATAMAX FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL", ttl=0, show_spinner=False)
+    date = conn.query(f"SELECT MIN(Data) AS DATAMIN, MAX(Data) AS DATAMAX FROM CORSE WHERE NumTreno={scelta_treno} AND Fermate IS NOT NULL", ttl=300, show_spinner="Caricamento...")
     data_min = date['DATAMIN'][0]
     data_max = date['DATAMAX'][0]
     intervallo_date = st.date_input("**Scegli l'intervallo di date per le statistiche**",value=(data_min, data_max),min_value=data_min,max_value=data_max)
@@ -155,7 +155,7 @@ def statistiche_per_stazione(conn, scelta_treno):
                     
         if scelta_stazione != None:
             
-            dati_box_plot = conn.query(f"SELECT C.Data, tab_fermate.nomeFermata, ritArrivo, ritPartenza FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno};", ttl=0)
+            dati_box_plot = conn.query(f"SELECT C.Data, tab_fermate.nomeFermata, ritArrivo, ritPartenza FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno};", ttl=300, show_spinner="Caricamento...")
 
             if dati_box_plot['ritArrivo'].isnull().all():
                 scelta_arr_part = st.radio("**Scegli se visualizzare il ritardo di arrivo o di partenza**", options=['Arrivo', 'Partenza'], index=1, disabled=True, horizontal=True)
@@ -187,7 +187,7 @@ def statistiche_per_stazione(conn, scelta_treno):
         with col2:
             if scelta_stazione != None:
 
-                punt_df = conn.query(f"with TabTotArrivo AS (SELECT count(ritArrivo) AS TOTARR FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno}), TabTotPartenza AS (SELECT count(ritPartenza) AS TOTPART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno}), TabPuntArrivo AS (SELECT count(ritArrivo) AS ORARIOARR FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno} AND ritArrivo<5), TabPuntPartenza AS (SELECT count(ritPartenza) AS ORARIOPART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno} AND ritPartenza<5) SELECT IFNULL((ORARIOARR/TOTARR)*100,0) AS PUNTARRIVO, IFNULL((ORARIOPART/TOTPART)*100,0) AS PUNTPARTENZA FROM TabTotArrivo, TabTotPartenza, TabPuntArrivo, TabPuntPartenza;", ttl=0, show_spinner=False)
+                punt_df = conn.query(f"with TabTotArrivo AS (SELECT count(ritArrivo) AS TOTARR FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno}), TabTotPartenza AS (SELECT count(ritPartenza) AS TOTPART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno}), TabPuntArrivo AS (SELECT count(ritArrivo) AS ORARIOARR FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritArrivo SMALLINT(6) PATH '$.ritArrivo' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno} AND ritArrivo<5), TabPuntPartenza AS (SELECT count(ritPartenza) AS ORARIOPART FROM CORSE AS C, JSON_TABLE(Fermate, '$[*]' COLUMNS ( nomeFermata VARCHAR(32) PATH '$.nomeFermata', ritPartenza SMALLINT(6) PATH '$.ritPartenza' ) ) AS tab_fermate WHERE nomeFermata='{scelta_stazione}' AND C.Data>='{giorno_1}' AND C.Data<='{giorno_2}' AND C.NumTreno={scelta_treno} AND ritPartenza<5) SELECT IFNULL((ORARIOARR/TOTARR)*100,0) AS PUNTARRIVO, IFNULL((ORARIOPART/TOTPART)*100,0) AS PUNTPARTENZA FROM TabTotArrivo, TabTotPartenza, TabPuntArrivo, TabPuntPartenza;", ttl=300, show_spinner="Caricamento...")
                 if scelta_arr_part == 'Arrivo':
                     punt = punt_df['PUNTARRIVO'][0]
                 elif scelta_arr_part == 'Partenza':
