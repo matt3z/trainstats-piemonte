@@ -19,9 +19,9 @@ with st.container(border=True):
 with st.container(border=True):
     metrics_sfm_tot_sett(conn)
 
-with st.container(border=True):
-    st.subheader("Storico con dati aggregati per settimane")
-    sfm_grafico(conn)
+#with st.container(border=True):
+#    st.subheader("Storico con dati aggregati per settimane")
+#    sfm_grafico(conn)
 
 with st.expander("Statistiche per intervallo di date a scelta"):
     metrics_sfm_scelta(conn)    
